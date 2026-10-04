@@ -1,0 +1,2 @@
+import { contextBridge,ipcRenderer } from 'electron';
+contextBridge.exposeInMainWorld('desktop',{config:()=>ipcRenderer.invoke('config'),save:(p:unknown)=>ipcRenderer.invoke('save',p),activate:(id:string)=>ipcRenderer.invoke('activate',id),create:(name:string)=>ipcRenderer.invoke('create',name),preview:(p:unknown)=>ipcRenderer.invoke('preview',p),importPNG:()=>ipcRenderer.invoke('import'),publish:(s:unknown)=>ipcRenderer.send('publish',s),copy:(text:string)=>ipcRenderer.invoke('copy',text)});

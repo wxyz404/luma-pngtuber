@@ -1,0 +1,21 @@
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import sharp from 'sharp';
+const root='public';await fs.mkdir(`${root}/sample`,{recursive:true});await fs.mkdir(`${root}/models/wasm`,{recursive:true});
+const outline='#344642',mint='#b9ceaa',cream='#fff6df';
+const body=`<path d="M327 690 Q310 705 297 857 L277 1010 H747 L727 857 Q714 705 697 690" fill="#526d63" stroke="${outline}" stroke-width="14"/><path d="M388 699 L512 855 L636 699" fill="#df886d" stroke="${outline}" stroke-width="12"/><path d="M512 855 L490 972 L550 955 L551 837" fill="#df886d" stroke="${outline}" stroke-width="12"/><path d="M360 870 L350 975 M666 870 L677 975" stroke="#91aa8d" stroke-width="9" stroke-linecap="round"/>`;
+const head=`<path d="M476 221 Q448 137 397 123 Q397 218 491 250" fill="#839b77" stroke="${outline}" stroke-width="12"/><path d="M514 236 Q533 120 611 100 Q621 220 514 253" fill="${mint}" stroke="${outline}" stroke-width="12"/><path d="M304 356 Q280 240 343 295 L401 331 M720 356 Q744 240 681 295 L623 331" fill="${mint}" stroke="${outline}" stroke-width="14"/><path d="M297 437 Q312 279 512 287 Q712 279 727 437 L744 541 Q756 731 512 761 Q268 731 280 541 Z" fill="${mint}" stroke="${outline}" stroke-width="14"/><path d="M341 524 Q353 410 512 420 Q671 410 683 524 L684 575 Q683 695 512 711 Q341 695 340 575 Z" fill="${cream}"/><ellipse cx="371" cy="578" rx="38" ry="22" fill="#e6aa8d" opacity=".65"/><ellipse cx="653" cy="578" rx="38" ry="22" fill="#e6aa8d" opacity=".65"/>`;
+const eyes=`<ellipse cx="424" cy="524" rx="18" ry="25" fill="${outline}"/><ellipse cx="600" cy="524" rx="18" ry="25" fill="${outline}"/><circle cx="430" cy="517" r="6" fill="white"/><circle cx="606" cy="517" r="6" fill="white"/>`;
+const blink=`<path d="M400 531 Q424 545 448 531 M576 531 Q600 545 624 531" fill="none" stroke="${outline}" stroke-width="12" stroke-linecap="round"/>`;
+const smileEyes=`<path d="M401 533 Q424 503 447 533 M577 533 Q600 503 623 533" fill="none" stroke="${outline}" stroke-width="12" stroke-linecap="round"/>`;
+const brows=`<path d="M405 466 L444 464 M580 464 L619 466" stroke="${outline}" stroke-width="10" stroke-linecap="round"/>`;
+const raised=`<path d="M405 449 Q424 438 444 447 M580 447 Q600 438 619 449" fill="none" stroke="${outline}" stroke-width="10" stroke-linecap="round"/>`;
+const mouth=`<path d="M486 611 Q512 632 538 611" fill="none" stroke="${outline}" stroke-width="11" stroke-linecap="round"/>`;
+const talk=`<ellipse cx="512" cy="624" rx="30" ry="36" fill="${outline}"/><path d="M490 641 Q512 622 534 641 Q529 657 512 658 Q495 657 490 641" fill="#e39d90"/>`;
+const mouthSmile=`<path d="M473 609 Q512 690 551 609 Z" fill="${outline}"/><path d="M480 610 L544 610 L534 626 L490 626 Z" fill="white"/>`;
+const surprise=`<ellipse cx="512" cy="626" rx="24" ry="34" fill="${outline}"/>`;
+const art={body,head,eyes,'eyes-blink':blink,'eyes-smile':smileEyes,brows,'brows-raised':raised,mouth,'mouth-talk':talk,'mouth-smile':mouthSmile,'mouth-surprise':surprise,neutral:body+head+eyes+brows+mouth,talk:body+head+eyes+brows+talk,blink:body+head+blink+brows+mouth,smile:body+head+smileEyes+brows+mouthSmile,surprise:body+head+eyes+raised+surprise,left:body+`<g transform="translate(-28 0)">${head+eyes+brows+mouth}</g>`,right:body+`<g transform="translate(28 0)">${head+eyes+brows+mouth}</g>`};
+for(const [name,content] of Object.entries(art))await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">${content}</svg>`)).png().toFile(`${root}/sample/${name}.png`);
+for(const name of await fs.readdir('node_modules/@mediapipe/tasks-vision/wasm'))if(/\.(wasm|js)$/.test(name))await fs.copyFile(path.join('node_modules/@mediapipe/tasks-vision/wasm',name),`${root}/models/wasm/${name}`);
+const dest=`${root}/models/face_landmarker.task`;try{await fs.access(dest);}catch{const url='https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';const r=await fetch(url);if(!r.ok)throw new Error(`Model download failed: ${r.status}`);await fs.writeFile(dest,Buffer.from(await r.arrayBuffer()));}
+console.log('Sample PNGs, WASM runtime, and face model are bundled.');

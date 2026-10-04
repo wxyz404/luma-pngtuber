@@ -1,0 +1,72 @@
+# Luma — local PNGtuber studio
+
+Luma turns ordinary webcam movements into a PNG avatar on Windows. It includes a sample character, two rig modes, optional microphone gating, local profile storage, and transparent OBS output. No accounts or online processing are used.
+
+![Luma studio](docs/preview.png)
+
+## Install and use
+
+Build the Windows installer with `pnpm run package`, or download a published installer from the repository Releases page when available. Packaging writes the installer to `../installers/`. The installer lets you choose a per-user installation location; this initial build is unsigned.
+
+1. Open Luma. Sprout, the bundled sample avatar, is ready to use.
+2. Select a webcam and click **Start camera**. Camera preview is optional and stays inside the studio.
+3. Look straight ahead with a relaxed, closed-mouth expression. Click **Calibrate neutral pose** and remain still for three seconds of valid tracking. Follow the movement check afterward.
+4. In **Artwork & rig**, use **PNG poses** for complete images or **Layered rig** for independent facial parts. Click **Save changes** after editing or calibrating.
+5. In **Stream output**, copy the source URL. In OBS, add a Browser source, paste the URL, and use 1024 × 1024 at 60 FPS. Keep Luma open while streaming. OBS receives only the avatar.
+
+Enable **Microphone assist** only if you want audio activity to gate talking animation. Webcam-only mode detects visible mouth opening; it cannot distinguish speech from yawning. Adjust the audio threshold if quiet speech or background noise activates it incorrectly.
+
+## Artwork guide
+
+- PNG files must be readable, at most 20 MB, and at most 4096 × 4096 pixels.
+- **PNG poses:** center/neutral/resting is required. Direction, expression, and talking/blinking variants are optional. Direction has priority, followed by surprise, smile, and neutral. Missing variants fall back to available artwork.
+- **Layered rigs:** add body, head, eyes, brows, mouth, or accessory layers. Import matching transparent canvases for each layer's feature variants. Drag layers in edit mode, Shift-click to place the pivot, and adjust scale and draw order numerically. Eye, brow, and mouth movement inherits the head pivot. Body and accessories stay anchored.
+- Sprout's parts use a shared 1024 × 1024 transparent canvas. Imported layers initially fit within 850 pixels; adjust their scale and position to match your own art.
+- A single flat PNG supports position, rotation, and talking bounce. Additional artwork is needed to change the drawn eyes or mouth. Head turning cannot reconstruct a side view from front-facing artwork.
+- Motion demo buttons affect the studio preview only. The OBS source continues to follow live input.
+
+## Storage and recovery
+
+Profiles, copied assets, calibration, and the persistent OBS token live under Electron's per-user data directory in Windows Roaming AppData (`%APPDATA%`, in the app's own directory). Profile asset references are relative. Back up the **entire** directory to move profiles to another computer. Imported original PNGs are never modified. Switching avatars saves pending edits; otherwise, save explicitly before closing.
+
+If the default output port (18743) is occupied, Luma chooses another local port and shows a notice. Copy the updated URL into OBS. The chosen port is remembered. After an app restart, the output reconnects automatically when that port is available.
+
+On face loss, the avatar holds briefly, then settles to neutral. The continuity lock does not deliberately follow a second person. After prolonged loss, use **Reacquire**. This is a spatial/shape continuity heuristic, not biometric identity recognition; another person in the same position with similar geometry can be mistaken for the original face.
+
+For webcam denial, enable desktop camera access in Windows Settings. Close apps that are occupying the camera. Missing artwork produces a reimport message. Unsupported/corrupt profile files remain on disk, while other valid profiles can still load.
+
+## Development
+
+Requires Node.js 22+ and pnpm. The checked-in `public/` directory includes the model, WASM files, and sample PNGs; the packaged app does not download them at runtime.
+
+```powershell
+pnpm install
+pnpm run assets  # regenerate sample art and copy WASM; download model only if missing
+pnpm run test
+pnpm run build
+pnpm run start
+pnpm run package
+```
+
+`scripts/smoke.cjs` uses Playwright's Electron API. Install Playwright as a development tool or set `LUMA_PLAYWRIGHT` to its module location. Provide Google's MediaPipe `portrait.jpg` test fixture at `../../work/portrait.jpg` before running it. The script uses synthetic video, separate test profiles, software rendering, and a test-only `--no-sandbox` launch flag for constrained execution environments. It never requests the real webcam. Those flags are not added to the packaged application.
+
+On restricted Windows environments where native esbuild cannot enumerate ancestor directories, run the build from a temporary `subst` drive mapped to this project, with symlink preservation enabled (already configured). Remove that mapping afterward. For example:
+
+```powershell
+subst L: "$PWD"
+Push-Location L:\
+pnpm run test
+pnpm run build
+Pop-Location
+subst L: /D
+```
+
+Redirect cache paths into an allowed workspace if needed: Electron uses `electron_config_cache`; electron-builder uses `ELECTRON_BUILDER_CACHE`.
+
+## Architecture
+
+The sandboxed Electron renderer has a narrow preload bridge for profiles, PNG importing, clipboard copying, and publishing validated animation state. A classic dedicated worker runs bundled MediaPipe CPU/WASM inference, with one frame in flight. The motion engine handles calibration, smoothing, thresholds, and loss recovery; Canvas 2D renders both rig modes. Desktop preview and OBS import the same rendering code.
+
+HTTP output binds only to `127.0.0.1`. Private artwork and the read-only WebSocket require the persistent output token. Studio access uses a separate per-launch token. IPC checks the sender window and frame; profile/state schemas reject invalid inputs. The server serves a fixed build-file map and profile-referenced PNGs, with no filesystem browser or control endpoints. Models and public build assets are served locally. Camera/audio data never enters the output server.
+
+See [VALIDATION.md](VALIDATION.md) for the checks performed and the hardware acceptance work still outstanding.

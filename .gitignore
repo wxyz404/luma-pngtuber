@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-electron/
+*.log
+installers/
+work/
+.env
+.env.*
+preferences.json
+*.tmp
