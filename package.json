@@ -1,6 +1,9 @@
 {
-  "name": "luma-pngtuber", "version": "0.1.0", "private": true,
-  "description": "Local webcam-driven PNG avatar studio", "author": "Luma",
+  "name": "luma-pngtuber",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Local webcam-driven PNG avatar studio",
+  "author": "Luma",
   "main": "dist-electron/main.cjs",
   "scripts": {
     "assets": "node scripts/assets.mjs",
@@ -10,15 +13,52 @@
     "package": "pnpm run build && electron-builder --win nsis --x64",
     "check": "tsc --noEmit"
   },
-  "dependencies": {"@mediapipe/tasks-vision": "0.10.32", "react": "19.2.0", "react-dom": "19.2.0", "scheduler": "0.27.0", "ws": "8.18.3", "zod": "4.1.12", "lucide-react": "0.468.0"},
-  "devDependencies": {"@types/node": "^22.10.0", "@types/react": "^19.0.0", "@types/react-dom": "^19.0.0", "@types/ws": "^8.5.13", "@vitejs/plugin-react": "^4.3.4", "electron": "^40.0.0", "electron-builder": "^26.0.12", "esbuild": "^0.25.0", "sharp": "^0.34.0", "typescript": "~5.7.3", "vite": "^6.1.0", "vitest": "^3.0.5"},
+  "dependencies": {
+    "@mediapipe/tasks-vision": "0.10.32",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "scheduler": "0.27.0",
+    "ws": "8.18.3",
+    "zod": "4.1.12",
+    "lucide-react": "0.468.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/ws": "^8.5.13",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^40.0.0",
+    "electron-builder": "^26.0.12",
+    "esbuild": "^0.25.0",
+    "sharp": "^0.34.0",
+    "typescript": "~5.7.3",
+    "vite": "^6.1.0",
+    "vitest": "^3.0.5"
+  },
   "build": {
-    "appId": "studio.luma.pngtuber", "productName": "Luma",
-    "electronDist": "node_modules/electron/dist", "npmRebuild": false,
-    "directories": {"output": "../installers"},
-    "files": ["dist/**/*", "dist-electron/**/*", "package.json"],
-    "win": {"target": "nsis", "signAndEditExecutable": false},
-    "nsis": {"oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true},
+    "appId": "studio.luma.pngtuber",
+    "productName": "Luma",
+    "electronDist": "node_modules/electron/dist",
+    "npmRebuild": false,
+    "directories": {
+      "output": "../installers"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
     "artifactName": "Luma-${version}-Windows-${arch}-Setup.${ext}"
   }
 }

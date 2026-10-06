@@ -16,6 +16,17 @@ Build the Windows installer with `pnpm run package`, or download a published ins
 
 Enable **Microphone assist** only if you want audio activity to gate talking animation. Webcam-only mode detects visible mouth opening; it cannot distinguish speech from yawning. Adjust the audio threshold if quiet speech or background noise activates it incorrectly.
 
+## Webcam monitor (v0.2.0)
+
+In **Studio → Your camera**, enable **Webcam preview** or click **Show webcam** beneath the avatar. The feed is hidden by default. Showing it does not start the camera; choose **Start camera** to grant webcam access. Hiding it keeps avatar tracking active; **Pause tracking** stops capture.
+
+- **Face skeleton** independently outlines the tracked face, eyes, eyebrows, lips, and irises. It is off by default and clears when tracking is lost. It tracks the face driving the avatar, rather than every face in the room.
+- **Mirror webcam preview** changes the feed and skeleton together, independently of the avatar's mirror-motion setting.
+- **Enlarge webcam preview** gives you a wider view for alignment and calibration.
+- **Tracking diagnostics** shows tracking FPS, last inference duration, actual camera dimensions, head angles, and microphone level when microphone assistance is enabled. Inference duration is not total animation latency.
+
+These display settings apply to the current studio session. Video, landmarks, and diagnostics stay in the studio; OBS continues to receive artwork and derived avatar animation only. No second webcam stream or body/hand tracker is started.
+
 ## Artwork guide
 
 - PNG files must be readable, at most 20 MB, and at most 4096 × 4096 pixels.

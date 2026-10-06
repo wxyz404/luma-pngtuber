@@ -5,15 +5,24 @@
 - TypeScript strict type checking and production renderer/main/preload/worker builds.
 - Motion and rig tests: direction and blink hysteresis, audio gating, simultaneous-expression priority, smoothing, calibration offsets, 250 ms loss hold and 300 ms neutral recovery, pose fallback, independent layered features.
 - Continuity-lock tests: maintain the selected face when another face is larger, require reacquisition after loss, and retain a continuously detected face during slow inference.
-- Storage/server tests: profile round-trip, relocation with relative copied PNGs, path/schema rejection, authenticated endpoints, read-only output, initial state, and WebSocket reconnection. There are **17 passing automated tests** across motion, locking, storage, and output.
+- Storage/server tests: profile round-trip, relocation with relative copied PNGs, path/schema rejection, authenticated endpoints, read-only output, initial state, and WebSocket reconnection. There are **21 passing automated tests** across motion, locking, storage, and output.
+- Camera monitor tests: normalized skeleton coordinates, invalid landmark handling, stale/lost skeleton clearing, and rejection of webcam/diagnostic fields from OBS packets.
 - Electron smoke test: studio opens, both rig modes render, PNG imports copy into managed assets, profile changes persist, local overlay draws an avatar with transparent corner pixels, bundled MediaPipe detects a test portrait, and the synthetic webcam pipeline completes neutral calibration. Mocked microphone and camera permission denials show the expected recovery messages. No renderer JavaScript errors were recorded.
 - A Windows x64 NSIS installer was generated. The packaged executable also passed the same Electron smoke checks against its ASAR-bundled model, worker, artwork, and renderer. Installation into the user's regular application directory has not been performed by the development session.
 
 The smoke test uses an isolated test profile directory, software rendering, synthetic camera input, and `--no-sandbox` because Chromium subprocesses fail under this development sandbox. The production application retains `sandbox: true`, context isolation, and disabled Node integration. The normal production sandbox launch must still be checked outside this restricted development environment.
 
+## v0.2.0 camera monitor checks (2026-10-05)
+
+All 21 automated tests, strict TypeScript checking, production builds, and the expanded Electron smoke suite passed. The updated packaged executable passed the same suite with zero renderer JavaScript errors. Synthetic camera checks cover real video element playback, feed visibility without stopping inference, independent skeleton/mirror/size controls, local diagnostics, face-loss clearing/recovery, and calibration. The OBS page contains no video element or camera monitor. A PNG import timing race discovered during visual review was fixed; the imported simple pose renders without an artwork alert.
+
+The v0.2.0 NSIS installer uses the previously packaged Windows Electron runtime with a freshly bundled application ASAR. The camera monitor is checked using a public MediaPipe portrait fixture rather than physical webcam footage. Display toggles start off each session (preview mirroring defaults on). Live hardware acceptance requirements below remain outstanding.
+
 ## Performance evidence and limits
 
 Cold CPU inference on one bundled-model test portrait took approximately **161–242 ms** across smoke runs in the constrained software-rendering test environment; the final packaged-executable run measured **161 ms**. These are individual inference measurements, not a motion-to-output percentile, steady-state webcam benchmark, or claim that the 150 ms latency target has been met.
+
+For v0.2.0, individual cold portrait probes measured 109–276 ms during source checks and **214 ms** in the final packaged smoke check. These remain fixture measurements, not motion-to-output latency or a 95th percentile.
 
 Capture targets 640 × 480 at 30 FPS. The application drops stale capture opportunities, allows only one frame in flight, and lowers inference frequency with workload. Rendering runs separately at the display's animation cadence, up to 60 FPS, while output state is published at approximately 30 Hz.
 

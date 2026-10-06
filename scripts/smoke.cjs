@@ -1,17 +1,19 @@
 const { _electron }=require(process.env.LUMA_PLAYWRIGHT||'playwright');
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 (async()=>{
- const workspace=path.resolve('../..'),shots=path.join(workspace,'outputs'),data=path.join(workspace,'work','smoke-profiles');
+ const workspace=path.resolve('../..'),shots=path.join(workspace,'outputs'),data=process.env.LUMA_SMOKE_DATA_DIR||path.join(workspace,'work','smoke-profiles');
  const app=await _electron.launch({executablePath:process.env.LUMA_EXECUTABLE||require('electron'),args:process.env.LUMA_EXECUTABLE?['--no-sandbox']:['.','--no-sandbox'],env:{...process.env,LUMA_TEST_MODE:'1',LUMA_DATA_DIR:data},timeout:30000});
  let page;const errors=[];
  try {
   page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')console.log('Renderer:',m.text());});page.on('requestfailed',r=>console.log('Request failed:',r.url(),r.failure()));await page.getByRole('heading',{name:'Bring a little character.'}).waitFor();
-  await page.waitForFunction(()=>!!window.desktop);const config=await page.evaluate(()=>window.desktop.config());assert(config.outputUrl.startsWith('http://127.0.0.1:'));
+  assert.equal(await page.getByRole('switch',{name:'Webcam preview',exact:true}).getAttribute('aria-checked'),'false');assert.equal(await page.getByRole('switch',{name:'Face skeleton',exact:true}).getAttribute('aria-checked'),'false');assert.equal(await page.locator('.camera-monitor').isVisible(),false);
+  await page.waitForFunction(()=>!!window.desktop);const config=await page.evaluate(()=>window.desktop.config());assert(config.outputUrl.startsWith('http://127.0.0.1:'));if(config.serverWarning)await page.getByRole('button',{name:'Dismiss error'}).click();
   await page.waitForFunction(()=>{const c=document.querySelector('canvas');return c&&c.getContext('2d').getImageData(512,500,1,1).data[3]>0;});
   await page.screenshot({path:path.join(shots,'Luma-preview.png')});
   await page.getByRole('button',{name:'Artwork & rig'}).click();await page.getByRole('button',{name:'PNG poses',exact:true}).click();
   await app.evaluate(({dialog},file)=>{dialog.showOpenDialog=async()=>({filePaths:[file],canceled:false});},path.resolve('public/sample/neutral.png'));
   await page.getByRole('button',{name:'Replace PNG',exact:true}).click();await page.waitForFunction(async()=>{const c=await window.desktop.config();return c.active.poses['center.neutral'].startsWith('assets/');});
+  await page.waitForFunction(()=>{const c=document.querySelector('.stage canvas');return c.getContext('2d').getImageData(512,500,1,1).data[3]>0;});assert.equal(await page.getByRole('alert').count(),0);
   await page.getByRole('button',{name:'Save changes'}).click();await page.getByRole('button',{name:'Saved',exact:true}).waitFor();
   let saved=await page.evaluate(()=>window.desktop.config());assert.equal(saved.active.mode,'simple');
   await page.getByRole('button',{name:'Layered rig',exact:true}).click();await page.getByRole('button',{name:'Save changes'}).click();await page.getByRole('button',{name:'Saved',exact:true}).waitFor();
@@ -22,22 +24,38 @@ const fs=require('node:fs/promises'),path=require('node:path'),assert=require('n
   const probe=await page.evaluate(async bytes=>{
    return await new Promise((resolve,reject)=>{const worker=new Worker('/models/tracker.js');const timeout=setTimeout(()=>{worker.terminate();reject(new Error('Worker probe timeout'));},45000);worker.onmessage=async({data})=>{if(data.type==='error'){clearTimeout(timeout);worker.terminate();reject(new Error(data.message));}if(data.type==='ready'){const bitmap=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/jpeg'}));worker.postMessage({type:'frame',bitmap,timestamp:100},[bitmap]);}if(data.type==='result'){clearTimeout(timeout);worker.terminate();resolve(data);}};worker.postMessage({type:'init',base:location.origin});});
   },portrait);
-  assert.equal(probe.frame.status,'tracked');assert(Number.isFinite(probe.frame.yaw));
+  assert.equal(probe.frame.status,'tracked');assert.equal(probe.points,null);assert(Number.isFinite(probe.frame.yaw));
   console.log('Local worker fixture inference:',Math.round(probe.duration),'ms');
   await page.evaluate(async bytes=>{
-   const img=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/jpeg'}));const canvas=document.createElement('canvas');canvas.width=640;canvas.height=480;const ctx=canvas.getContext('2d');ctx.drawImage(img,100,0,620,500,0,0,640,480);img.close();const timer=setInterval(()=>{ctx.fillStyle='#fff';ctx.fillRect(0,0,1,1);},33);window.__fixtureTimer=timer;const get=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);navigator.mediaDevices.getUserMedia=async constraints=>{if(constraints.video)return canvas.captureStream(30);return get(constraints);};
+   const img=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/jpeg'}));const canvas=document.createElement('canvas');canvas.width=640;canvas.height=480;const ctx=canvas.getContext('2d');ctx.drawImage(img,100,0,620,500,0,0,640,480);img.close();const timer=setInterval(()=>{ctx.fillStyle='#fff';ctx.fillRect(0,0,1,1);},33);window.__fixtureTimer=timer;window.__fixtureCanvas=canvas;window.__fixtureStill=ctx.getImageData(0,0,640,480);const get=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);navigator.mediaDevices.getUserMedia=async constraints=>{if(constraints.video)return canvas.captureStream(30);return get(constraints);};
   },portrait);
   await app.evaluate(({BrowserWindow})=>{BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('/index.html'))?.show();});
-  await page.getByRole('button',{name:'Studio',exact:true}).click();await page.getByRole('button',{name:'Toggle camera preview'}).click();await page.getByRole('button',{name:'Start camera',exact:true}).click();await page.getByText('Tracking live',{exact:true}).waitFor({timeout:45000});
+  await page.getByRole('button',{name:'Studio',exact:true}).click();await page.getByRole('button',{name:'Toggle camera preview'}).click();await page.getByRole('switch',{name:'Face skeleton',exact:true}).click();await page.getByRole('switch',{name:'Tracking diagnostics',exact:true}).click();await page.getByRole('button',{name:'Start camera',exact:true}).click();await page.getByText('Tracking live',{exact:true}).waitFor({timeout:45000});
+  const skeletonAlpha=()=>{const c=document.querySelector('.camera-image canvas');return c&&c.getContext('2d').getImageData(0,0,640,480).data.some((v,i)=>i%4===3&&v>0);};
+  await page.waitForFunction(skeletonAlpha,{},{timeout:10000});
+  assert.equal(await page.locator('.camera-image.mirrored').count(),1);
+  await page.getByRole('switch',{name:'Mirror webcam preview',exact:true}).click();assert.equal(await page.locator('.camera-image.mirrored').count(),0);
+  await page.getByRole('button',{name:'Enlarge webcam preview'}).click();assert.equal(await page.locator('.camera-monitor.expanded').count(),1);
+  await page.locator('.toast').waitFor({state:'detached'});await page.screenshot({path:path.join(shots,'Luma-camera.png'),fullPage:true});
+  await page.getByRole('button',{name:'Shrink webcam preview'}).click();
+  await page.getByRole('switch',{name:'Face skeleton',exact:true}).click();await page.waitForFunction(()=>{const c=document.querySelector('.camera-image canvas');return !c.getContext('2d').getImageData(0,0,640,480).data.some((v,i)=>i%4===3&&v>0);});
+  await page.getByRole('switch',{name:'Face skeleton',exact:true}).click();await page.waitForFunction(skeletonAlpha);
+  await page.getByRole('button',{name:'Toggle camera preview'}).click();assert.equal(await page.locator('.camera-monitor').isVisible(),false);assert.equal(await page.getByRole('button',{name:'Pause tracking'}).isEnabled(),true);
+  await page.getByRole('button',{name:'Toggle camera preview'}).click();await page.waitForFunction(skeletonAlpha);
+  assert.equal(await overlay.locator('video').count(),0);assert.equal(await overlay.locator('.camera-monitor').count(),0);
+  await page.evaluate(()=>window.__fixtureCanvas.getContext('2d').clearRect(0,0,640,480));
+  await page.getByText('Looking for face',{exact:true}).waitFor({timeout:10000});
+  await page.waitForFunction(()=>{const c=document.querySelector('.camera-image canvas');return !c.getContext('2d').getImageData(0,0,640,480).data.some((v,i)=>i%4===3&&v>0);});
+  await page.evaluate(()=>window.__fixtureCanvas.getContext('2d').putImageData(window.__fixtureStill,0,0));await page.getByText('Tracking live',{exact:true}).waitFor({timeout:10000});
   await page.getByRole('button',{name:'Calibrate neutral pose'}).click();await page.getByText('Turn left, then right',{exact:true}).waitFor({timeout:15000});
-  await page.getByRole('button',{name:'Pause tracking'}).click();await page.evaluate(()=>clearInterval(window.__fixtureTimer));
+  await page.getByRole('button',{name:'Pause tracking'}).click();await page.waitForFunction(()=>!document.querySelector('video').srcObject);await page.evaluate(()=>clearInterval(window.__fixtureTimer));
   await page.getByRole('button',{name:'Save changes'}).click();await page.getByRole('button',{name:'Saved',exact:true}).waitFor();
   saved=await page.evaluate(()=>window.desktop.config());assert.equal(saved.active.calibration.completed,true);
   await page.evaluate(()=>{navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('denied','NotAllowedError');};});
   await page.locator('.setting-line').filter({hasText:'Microphone assist'}).getByRole('switch').click();await page.getByRole('alert').getByText('Microphone access is unavailable. Webcam-only mouth animation remains available.').waitFor();await page.getByRole('button',{name:'Dismiss error'}).click();
   await page.getByRole('button',{name:'Start camera',exact:true}).click();await page.getByRole('alert').getByText('Camera access was denied. Enable camera access for desktop apps in Windows Settings, then try again.').waitFor();
   await overlay.close();assert.deepEqual(errors,[]);
-  const result={passed:true,checks:['Electron launch and isolated IPC','Layered and simple rendering','Native PNG import copied to managed assets','Profile persistence','Transparent overlay','Local MediaPipe worker detects face','Synthetic webcam pipeline and three-second calibration','Denied camera and microphone recovery'],fixtureInferenceMs:Math.round(probe.duration),pageErrors:errors};
+  const result={passed:true,checks:['Electron launch and isolated IPC','Layered and simple rendering','Native PNG import copied to managed assets','Profile persistence','Transparent overlay','Local MediaPipe worker detects face','Synthetic webcam pipeline and three-second calibration','Denied camera and microphone recovery','Webcam visibility toggle without stopping inference','Face skeleton toggle, normalized alignment, and loss clearing','Independent preview mirror and enlargement','Local tracking diagnostics','OBS contains no camera video or diagnostic overlay'],fixtureInferenceMs:Math.round(probe.duration),pageErrors:errors};
   await fs.writeFile(path.join(workspace,'work','smoke-results.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
  } catch(e){console.log('Launch diagnostics',await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().map(w=>({url:w.webContents.getURL(),loading:w.webContents.isLoading(),destroyed:w.webContents.isDestroyed()}))));console.log('Page errors',errors);if(page){console.log('Page text',await page.locator('body').innerText({timeout:2000}).catch(()=>'(unavailable)'));await page.screenshot({path:path.join(workspace,'work','smoke-failure.png'),timeout:3000}).catch(()=>{});}throw e;} finally {await app.close();}
 })().catch(e=>{console.error(e);process.exit(1);});
