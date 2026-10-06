@@ -5,8 +5,11 @@ import { randomBytes } from 'node:crypto';
 import { ProfileStore } from './store';
 import { startOutputServer } from './server';
 import { profileSchema } from '../src/shared/types';
-if(process.env.LUMA_DATA_DIR)app.setPath('userData',path.resolve(process.env.LUMA_DATA_DIR));
-if(process.env.LUMA_TEST_MODE){app.disableHardwareAcceleration();app.commandLine.appendSwitch('disable-background-timer-throttling');app.commandLine.appendSwitch('disable-renderer-backgrounding');}
+// Keep the original storage and single-instance identity across the Sprout rename.
+const dataDirectory=process.env.SPROUT_DATA_DIR||process.env.LUMA_DATA_DIR;
+app.setPath('userData',dataDirectory?path.resolve(dataDirectory):path.join(app.getPath('appData'),'luma-pngtuber'));
+const testMode=process.env.SPROUT_TEST_MODE||process.env.LUMA_TEST_MODE;
+if(testMode){app.disableHardwareAcceleration();app.commandLine.appendSwitch('disable-background-timer-throttling');app.commandLine.appendSwitch('disable-renderer-backgrounding');}
 if(!app.requestSingleInstanceLock())app.quit();
 let win:BrowserWindow|undefined;
 app.on('second-instance',()=>{win?.show();win?.focus();});
@@ -28,10 +31,10 @@ app.whenReady().then(async()=>{
   ipcMain.on('publish',(e,s)=>{try{authorized(e);output.publish(s);}catch{/* Reject invalid renderer messages. */}});
   session.defaultSession.setPermissionRequestHandler((web,permission,callback,details)=>{callback(web===win?.webContents&&permission==='media'&&details.requestingUrl.startsWith(studioURL)&&details.isMainFrame);});
   session.defaultSession.setPermissionCheckHandler((web,permission,origin)=>web===win?.webContents&&permission==='media'&&origin===output.url);
-  win=new BrowserWindow({width:1440,height:940,minWidth:1100,minHeight:760,backgroundColor:'#f7f5ef',title:'Luma · Avatar studio',autoHideMenuBar:true,show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
+  win=new BrowserWindow({width:1440,height:940,minWidth:1100,minHeight:760,backgroundColor:'#f7f5ef',title:'Sprout · Avatar studio',autoHideMenuBar:true,show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false}});
   win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',(e,url)=>{if(url!==studioURL)e.preventDefault();});
-  if(process.env.LUMA_TEST_MODE){win.webContents.on('render-process-gone',(_e,details)=>console.error('Renderer exited:',details));win.webContents.on('did-fail-load',(_e,code,description)=>console.error('Navigation failed:',code,description));}
-  win.once('ready-to-show',()=>{if(!process.env.LUMA_TEST_MODE)win?.show();});await win.loadURL(studioURL);
+  if(testMode){win.webContents.on('render-process-gone',(_e,details)=>console.error('Renderer exited:',details));win.webContents.on('did-fail-load',(_e,code,description)=>console.error('Navigation failed:',code,description));}
+  win.once('ready-to-show',()=>{if(!testMode)win?.show();});await win.loadURL(studioURL);
   app.on('before-quit',()=>{void output.close();});
-}).catch(async e=>{dialog.showErrorBox('Luma could not start',`${e.message}\nCheck that your profile folder is writable, then restart.`);app.quit();});
+}).catch(async e=>{dialog.showErrorBox('Sprout could not start',`${e.message}\nCheck that your profile folder is writable, then restart.`);app.quit();});
 app.on('window-all-closed',()=>app.quit());

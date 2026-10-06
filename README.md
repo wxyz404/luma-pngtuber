@@ -1,18 +1,20 @@
-# Luma — local PNGtuber studio
+# Sprout — local PNGtuber studio
 
-Luma turns ordinary webcam movements into a PNG avatar on Windows. It includes a sample character, two rig modes, optional microphone gating, local profile storage, and transparent OBS output. No accounts or online processing are used.
+Previously named Luma. Sprout v0.3.1 updates the app branding, installer name, and repository to [sprout-pngtuber](https://github.com/wxyz404/sprout-pngtuber).
 
-![Luma studio](docs/preview.png)
+Sprout turns ordinary webcam movements into a PNG avatar on Windows. It includes a sample character, two rig modes, optional microphone gating, local profile storage, and transparent OBS output. No accounts or online processing are used.
+
+![Sprout studio](docs/preview.png)
 
 ## Install and use
 
 Build the Windows installer with `pnpm run package`, or download a published installer from the repository Releases page when available. Packaging writes the installer to `../installers/`. The installer lets you choose a per-user installation location; this initial build is unsigned.
 
-1. Open Luma. Sprout, the bundled sample avatar, is ready to use.
+1. Open Sprout. Sprout, the bundled sample avatar, is ready to use.
 2. Select a webcam and click **Start camera**. Camera preview is optional and stays inside the studio.
 3. Look straight ahead with a relaxed, closed-mouth expression. Click **Calibrate neutral pose** and remain still for three seconds of valid tracking. Follow the movement check afterward.
 4. In **Artwork & rig**, use **PNG poses** for complete images or **Layered rig** for independent facial parts. Click **Save changes** after editing or calibrating.
-5. In **Stream output**, copy the source URL. In OBS, add a Browser source, paste the URL, and use 1024 × 1024 at 60 FPS. Keep Luma open while streaming. OBS receives only the avatar.
+5. In **Stream output**, copy the source URL. In OBS, add a Browser source, paste the URL, and use 1024 × 1024 at 60 FPS. Keep Sprout open while streaming. OBS receives only the avatar.
 
 Enable **Microphone assist** only if you want audio activity to gate talking animation. Webcam-only mode detects visible mouth opening; it cannot distinguish speech from yawning. Adjust the audio threshold if quiet speech or background noise activates it incorrectly.
 
@@ -47,9 +49,9 @@ Missing side expression artwork falls back to that side's resting artwork, then 
 
 ## Storage and recovery
 
-Profiles, copied assets, calibration, and the persistent OBS token live under Electron's per-user data directory in Windows Roaming AppData (`%APPDATA%`, in the app's own directory). Profile asset references are relative. Back up the **entire** directory to move profiles to another computer. Imported original PNGs are never modified. Switching avatars saves pending edits; otherwise, save explicitly before closing.
+Profiles, copied assets, calibration, and the persistent OBS token live in `%APPDATA%\luma-pngtuber`. Sprout keeps this original storage path and the original installer application ID so existing profiles remain available after upgrading from Luma. Back up the **entire** directory to move profiles to another computer. Profile asset references are relative, and imported original PNGs are never modified. Switching avatars saves pending edits; otherwise, save explicitly before closing. Physical installer upgrades still require validation; the application loading existing profile data is checked separately.
 
-If the default output port (18743) is occupied, Luma chooses another local port and shows a notice. Copy the updated URL into OBS. The chosen port is remembered. After an app restart, the output reconnects automatically when that port is available.
+If the default output port (18743) is occupied, Sprout chooses another local port and shows a notice. Copy the updated URL into OBS. The chosen port is remembered. After an app restart, the output reconnects automatically when that port is available.
 
 On face loss, the avatar holds briefly, then settles to neutral. The continuity lock does not deliberately follow a second person. After prolonged loss, use **Reacquire**. This is a spatial/shape continuity heuristic, not biometric identity recognition; another person in the same position with similar geometry can be mistaken for the original face.
 
@@ -68,7 +70,7 @@ pnpm run start
 pnpm run package
 ```
 
-`scripts/smoke.cjs` uses Playwright's Electron API. Install Playwright as a development tool or set `LUMA_PLAYWRIGHT` to its module location. Provide Google's MediaPipe `portrait.jpg` test fixture at `../../work/portrait.jpg` before running it. The script uses synthetic video, separate test profiles, software rendering, and a test-only `--no-sandbox` launch flag for constrained execution environments. It never requests the real webcam. Those flags are not added to the packaged application.
+`scripts/smoke.cjs` uses Playwright's Electron API. Install Playwright as a development tool or set `SPROUT_PLAYWRIGHT` to its module location. Provide Google's MediaPipe `portrait.jpg` test fixture at `../../work/portrait.jpg` before running it. The script uses synthetic video, separate test profiles, software rendering, and a test-only `--no-sandbox` launch flag for constrained execution environments. It never requests the real webcam. Those flags are not added to the packaged application.
 
 On restricted Windows environments where native esbuild cannot enumerate ancestor directories, run the build from a temporary `subst` drive mapped to this project, with symlink preservation enabled (already configured). Remove that mapping afterward. For example:
 

@@ -1,4 +1,4 @@
-# Luma validation
+# Sprout validation
 
 ## Verified
 
@@ -31,6 +31,12 @@ Both rig modes expose Center, Left, and Right artwork banks and a saved Directio
 All 34 automated tests, strict TypeScript checking, and production builds passed. New tests cover the centered-only switch, yaw hysteresis, side-specific feature combinations, simultaneous expressions, fallbacks, and legacy profile loading. Source and packaged Electron checks exercise native PNG assignment, synthetic yaw switching in the studio and local OBS renderer, combined smile/talk/blink poses, layered side art and blinks, studio-only artwork previews, and save/restart persistence. No renderer JavaScript errors were recorded. These checks use synthetic signals rather than a new physical webcam trial.
 
 The v0.3.0 NSIS installer uses the previously packaged Windows Electron runtime with a freshly bundled application ASAR. Hardware and normal production sandbox acceptance requirements below remain outstanding.
+
+## v0.3.1 Sprout rename (2026-10-06)
+
+The desktop UI, window/output titles, support messages, package name, executable filename, installer name, and repository use Sprout. The original application ID (`studio.luma.pngtuber`) and production data path (`%APPDATA%\luma-pngtuber`) are retained for upgrade compatibility. Earlier releases were distributed under the Luma name.
+
+All 34 automated tests, strict TypeScript checking, and production builds passed. The packaged Sprout executable passed a branding/profile compatibility check using isolated data created by the earlier Luma executable: the full active profile and persistent OBS token were retained, the app and output titles use Sprout, and transparent avatar output remains intact. No renderer JavaScript errors were recorded. The Sprout v0.3.1 NSIS installer was regenerated from that checked application archive. Physical installer upgrade testing remains outstanding.
 
 ## Performance evidence and limits
 

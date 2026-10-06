@@ -48,7 +48,7 @@ export function CameraMonitor(props: Props) {
       {!props.running && <div className="camera-empty"><Camera size={25}/><b>{props.starting ? 'Starting your webcam…' : 'Your webcam preview'}</b><span>{props.starting ? 'Loading the bundled face tracker.' : 'Choose a video input, then select Start camera.'}</span></div>}
       <div className="camera-status"><span className={props.tracked ? 'online' : ''}/>{props.status}{props.running && props.skeleton && <small>{props.tracked ? 'Face skeleton on' : 'Waiting for face'}</small>}</div>
     </div>
-    <div className="camera-local-note">Only visible in Luma · {props.mirrored ? 'Mirrored view' : 'Natural view'}</div>
+    <div className="camera-local-note">Only visible in Sprout · {props.mirrored ? 'Mirrored view' : 'Natural view'}</div>
     {props.diagnosticsVisible && <div className="camera-diagnostics" aria-label="Tracking diagnostics">
       <div><span>Tracking</span><b>{props.running ? props.fps : '—'} FPS</b></div>
       <div><span>Last inference</span><b>{props.running && d.inferenceMs ? Math.round(d.inferenceMs) : '—'} ms</b></div>

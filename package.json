@@ -1,9 +1,9 @@
 {
-  "name": "luma-pngtuber",
-  "version": "0.3.0",
+  "name": "sprout-pngtuber",
+  "version": "0.3.1",
   "private": true,
   "description": "Local webcam-driven PNG avatar studio",
-  "author": "Luma",
+  "author": "Sprout",
   "main": "dist-electron/main.cjs",
   "scripts": {
     "assets": "node scripts/assets.mjs",
@@ -38,7 +38,7 @@
   },
   "build": {
     "appId": "studio.luma.pngtuber",
-    "productName": "Luma",
+    "productName": "Sprout",
     "electronDist": "node_modules/electron/dist",
     "npmRebuild": false,
     "directories": {
@@ -59,6 +59,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true
     },
-    "artifactName": "Luma-${version}-Windows-${arch}-Setup.${ext}"
+    "artifactName": "Sprout-${version}-Windows-${arch}-Setup.${ext}",
+    "executableName": "Sprout"
   }
 }

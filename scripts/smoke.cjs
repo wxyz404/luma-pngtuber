@@ -1,15 +1,15 @@
-const { _electron }=require(process.env.LUMA_PLAYWRIGHT||'playwright');
+const { _electron }=require(process.env.SPROUT_PLAYWRIGHT||'playwright');
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 (async()=>{
- const workspace=path.resolve('../..'),shots=path.join(workspace,'outputs'),data=process.env.LUMA_SMOKE_DATA_DIR||path.join(workspace,'work','smoke-profiles');
- const app=await _electron.launch({executablePath:process.env.LUMA_EXECUTABLE||require('electron'),args:process.env.LUMA_EXECUTABLE?['--no-sandbox']:['.','--no-sandbox'],env:{...process.env,LUMA_TEST_MODE:'1',LUMA_DATA_DIR:data},timeout:30000});
+ const workspace=path.resolve('../..'),shots=path.join(workspace,'outputs'),data=process.env.SPROUT_SMOKE_DATA_DIR||path.join(workspace,'work','smoke-profiles');
+ const app=await _electron.launch({executablePath:process.env.SPROUT_EXECUTABLE||require('electron'),args:process.env.SPROUT_EXECUTABLE?['--no-sandbox']:['.','--no-sandbox'],env:{...process.env,SPROUT_TEST_MODE:'1',SPROUT_DATA_DIR:data},timeout:30000});
  let page;const errors=[];
  try {
   page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')console.log('Renderer:',m.text());});page.on('requestfailed',r=>console.log('Request failed:',r.url(),r.failure()));await page.getByRole('heading',{name:'Bring a little character.'}).waitFor();
   assert.equal(await page.getByRole('switch',{name:'Webcam preview',exact:true}).getAttribute('aria-checked'),'false');assert.equal(await page.getByRole('switch',{name:'Face skeleton',exact:true}).getAttribute('aria-checked'),'false');assert.equal(await page.locator('.camera-monitor').isVisible(),false);
   await page.waitForFunction(()=>!!window.desktop);const config=await page.evaluate(()=>window.desktop.config());assert(config.outputUrl.startsWith('http://127.0.0.1:'));if(config.serverWarning)await page.getByRole('button',{name:'Dismiss error'}).click();
   await page.waitForFunction(()=>{const c=document.querySelector('canvas');return c&&c.getContext('2d').getImageData(512,500,1,1).data[3]>0;});
-  await page.screenshot({path:path.join(shots,'Luma-preview.png')});
+  await page.screenshot({path:path.join(shots,'Sprout-preview.png')});
   await page.getByRole('button',{name:'Artwork & rig'}).click();await page.getByRole('button',{name:'PNG poses',exact:true}).click();
   await app.evaluate(({dialog},file)=>{dialog.showOpenDialog=async()=>({filePaths:[file],canceled:false});},path.resolve('public/sample/neutral.png'));
   await page.getByRole('button',{name:'Replace PNG',exact:true}).click();await page.waitForFunction(async()=>{const c=await window.desktop.config();return c.active.poses['center.neutral'].startsWith('assets/');});
@@ -17,7 +17,7 @@ const fs=require('node:fs/promises'),path=require('node:path'),assert=require('n
   await page.getByRole('button',{name:'Save changes'}).click();await page.getByRole('button',{name:'Saved',exact:true}).waitFor();
   let saved=await page.evaluate(()=>window.desktop.config());assert.equal(saved.active.mode,'simple');
   await page.getByRole('button',{name:'Layered rig',exact:true}).click();await page.getByRole('button',{name:'Save changes'}).click();await page.getByRole('button',{name:'Saved',exact:true}).waitFor();
-  await page.getByRole('button',{name:'Motion',exact:true}).click();await page.getByRole('button',{name:'smile',exact:true}).click();await page.screenshot({path:path.join(shots,'Luma-motion.png')});await page.getByRole('button',{name:'Return to live preview'}).click();
+  await page.getByRole('button',{name:'Motion',exact:true}).click();await page.getByRole('button',{name:'smile',exact:true}).click();await page.screenshot({path:path.join(shots,'Sprout-motion.png')});await page.getByRole('button',{name:'Return to live preview'}).click();
   const nextWindow=app.waitForEvent('window');await app.evaluate(async({BrowserWindow},url)=>{const w=new BrowserWindow({width:1024,height:1024,show:false,webPreferences:{contextIsolation:true,nodeIntegration:false,sandbox:true}});await w.loadURL(url);},config.outputUrl);const overlay=await nextWindow;await overlay.waitForFunction(()=>{const c=document.querySelector('canvas');return c?.getContext('2d').getImageData(c.width/2,c.height/2,1,1).data[3]>0;});
   assert.equal(await overlay.evaluate(()=>document.querySelector('canvas').getContext('2d').getImageData(0,0,1,1).data[3]),0);
   const portrait=Array.from(await fs.readFile(path.join(workspace,'work','portrait.jpg')));
@@ -36,7 +36,7 @@ const fs=require('node:fs/promises'),path=require('node:path'),assert=require('n
   assert.equal(await page.locator('.camera-image.mirrored').count(),1);
   await page.getByRole('switch',{name:'Mirror webcam preview',exact:true}).click();assert.equal(await page.locator('.camera-image.mirrored').count(),0);
   await page.getByRole('button',{name:'Enlarge webcam preview'}).click();assert.equal(await page.locator('.camera-monitor.expanded').count(),1);
-  await page.locator('.toast').waitFor({state:'detached'});await page.screenshot({path:path.join(shots,'Luma-camera.png'),fullPage:true});
+  await page.locator('.toast').waitFor({state:'detached'});await page.screenshot({path:path.join(shots,'Sprout-camera.png'),fullPage:true});
   await page.getByRole('button',{name:'Shrink webcam preview'}).click();
   await page.getByRole('switch',{name:'Face skeleton',exact:true}).click();await page.waitForFunction(()=>{const c=document.querySelector('.camera-image canvas');return !c.getContext('2d').getImageData(0,0,640,480).data.some((v,i)=>i%4===3&&v>0);});
   await page.getByRole('switch',{name:'Face skeleton',exact:true}).click();await page.waitForFunction(skeletonAlpha);
