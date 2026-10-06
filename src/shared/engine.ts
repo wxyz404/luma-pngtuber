@@ -1,4 +1,5 @@
 import { AnimationState, AvatarProfile, IDLE, Signals, TrackingFrame, ZERO } from './types';
+import { effectiveFacing,getLayerSlot,Facing } from './facing';
 const keys=Object.keys(ZERO) as (keyof Signals)[];
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
 export class MotionEngine {
@@ -18,6 +19,7 @@ export class MotionEngine {
     for(const key of keys)next[key]+=alpha*(target[key]-next[key]);
     const yaw=next.yaw*(profile.settings.mirror?-1:1);
     if(yaw>15)next.direction='right';else if(yaw< -15)next.direction='left';else if(Math.abs(yaw)<10)next.direction='center';
+    if(profile.settings.directionalStates===false)next.direction='center';
     const gate=!frame.micEnabled||frame.audioActive;
     next.talking=gate && next.mouth>(this.state.talking?.12:.22);
     next.blinking=Math.min(next.blinkLeft,next.blinkRight)>(this.state.blinking?.35:.6);
@@ -27,17 +29,28 @@ export class MotionEngine {
   }
 }
 export function choosePose(profile:AvatarProfile,s:AnimationState):string|undefined {
-  const ds=[s.direction,...(s.direction==='center'?[]:['center'])];
+  const direction=effectiveFacing(profile,s);const ds=[direction,...(direction==='center'?[]:['center'])];
   for(const d of ds){for(const e of [s.expression,...(s.expression==='neutral'?[]:['neutral'])]) {
     const base=`${d}.${e}`;
     const variants=[...(s.blinking&&s.talking?['.talk.blink']:[]),...(s.blinking?['.blink']:[]),...(s.talking?['.talk']:[]),''];
     for(const v of variants)if(profile.poses[base+v])return profile.poses[base+v];
   }}return profile.poses['center.neutral'];
 }
-export function layerAsset(layer:AvatarProfile['layers'][number],s:AnimationState) {
-  if(layer.role==='head')return layer.variants[s.direction]||layer.asset;
-  if(layer.role==='eyes')return (s.blinking&&layer.variants.blink)||(s.expression==='smile'&&layer.variants.smile)||layer.asset;
-  if(layer.role==='mouth')return (s.expression==='surprise'&&layer.variants.surprise)||(s.talking&&layer.variants.talk)||(s.expression==='smile'&&layer.variants.smile)||layer.asset;
-  if(layer.role==='brows')return (s.brow>.4&&layer.variants.raised)||layer.asset;
+export function layerAsset(layer:AvatarProfile['layers'][number],s:AnimationState,facing:Facing=s.direction) {
+  const slots:string[]=[];
+  if(layer.role==='eyes') {
+    if(s.blinking&&s.expression==='smile')slots.push('smile.blink');
+    if(s.blinking)slots.push('blink');if(s.expression==='smile')slots.push('smile');
+  }
+  if(layer.role==='mouth') {
+    if(s.expression==='surprise'){if(s.talking)slots.push('surprise.talk');slots.push('surprise');}
+    if(s.expression==='smile'&&s.talking)slots.push('smile.talk');
+    if(s.talking)slots.push('talk');if(s.expression==='smile')slots.push('smile');
+  }
+  if(layer.role==='brows'&&s.brow>.4)slots.push('raised');
+  slots.push('neutral');
+  for(const direction of [facing,...(facing==='center'?[]:['center' as Facing])]) {
+    for(const slot of slots){const asset=getLayerSlot(layer,direction,slot);if(asset)return asset;}
+  }
   return layer.asset;
 }

@@ -29,6 +29,14 @@ These display settings apply to the current studio session. Video, landmarks, an
 
 ## Artwork guide
 
+### Facing states (v0.3.0)
+
+In **Artwork & rig → Facing states**, **Directional sprite states** lets head turns select **Center**, **Left**, or **Right** artwork. Turn it off to always use centered artwork; blinking, smiling, talking, and restrained head motion still work. The setting is saved with each avatar. Existing profiles keep directional switching enabled.
+
+Select a facing tab to import that state's artwork. **PNG poses** has a separate bank of resting, smile, surprised, talking, blinking, and combined talking/blinking poses for each facing. **Layered rig** has separate resting artwork per layer and separate eye, mouth, and brow variants per facing, including smile/blink and smile/talk combinations. All states share a layer's position, scale, and pivot; export matching transparent canvases.
+
+Missing side expression artwork falls back to that side's resting artwork, then available centered artwork. **Preview facing artwork** lets you check a facing and its expression without a webcam, including while directional switching is disabled. This preview stays inside the studio; OBS follows live input and the saved directional-state setting. The sample includes basic left/right PNG poses; supply additional art for side-specific facial animation.
+
 - PNG files must be readable, at most 20 MB, and at most 4096 × 4096 pixels.
 - **PNG poses:** center/neutral/resting is required. Direction, expression, and talking/blinking variants are optional. Direction has priority, followed by surprise, smile, and neutral. Missing variants fall back to available artwork.
 - **Layered rigs:** add body, head, eyes, brows, mouth, or accessory layers. Import matching transparent canvases for each layer's feature variants. Drag layers in edit mode, Shift-click to place the pivot, and adjust scale and draw order numerically. Eye, brow, and mouth movement inherits the head pivot. Body and accessories stay anchored.
