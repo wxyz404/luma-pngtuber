@@ -32,6 +32,7 @@ These display settings apply to the current studio session. Video, landmarks, an
 - PNG files must be readable, at most 20 MB, and at most 4096 × 4096 pixels.
 - **PNG poses:** center/neutral/resting is required. Direction, expression, and talking/blinking variants are optional. Direction has priority, followed by surprise, smile, and neutral. Missing variants fall back to available artwork.
 - **Layered rigs:** add body, head, eyes, brows, mouth, or accessory layers. Import matching transparent canvases for each layer's feature variants. Drag layers in edit mode, Shift-click to place the pivot, and adjust scale and draw order numerically. Eye, brow, and mouth movement inherits the head pivot. Body and accessories stay anchored.
+- **Layer scaling:** The Scale slider resizes artwork around its image center. X/Y are saved corner coordinates, so they adjust as the image resizes. The slider limits its range to keep that center and valid profile coordinates; move an off-canvas layer inward if you need more scaling room. Existing profiles keep their saved placement.
 - Sprout's parts use a shared 1024 × 1024 transparent canvas. Imported layers initially fit within 850 pixels; adjust their scale and position to match your own art.
 - A single flat PNG supports position, rotation, and talking bounce. Additional artwork is needed to change the drawn eyes or mouth. Head turning cannot reconstruct a side view from front-facing artwork.
 - Motion demo buttons affect the studio preview only. The OBS source continues to follow live input.

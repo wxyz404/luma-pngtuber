@@ -5,7 +5,7 @@
 - TypeScript strict type checking and production renderer/main/preload/worker builds.
 - Motion and rig tests: direction and blink hysteresis, audio gating, simultaneous-expression priority, smoothing, calibration offsets, 250 ms loss hold and 300 ms neutral recovery, pose fallback, independent layered features.
 - Continuity-lock tests: maintain the selected face when another face is larger, require reacquisition after loss, and retain a continuously detected face during slow inference.
-- Storage/server tests: profile round-trip, relocation with relative copied PNGs, path/schema rejection, authenticated endpoints, read-only output, initial state, and WebSocket reconnection. There are **21 passing automated tests** across motion, locking, storage, and output.
+- Storage/server tests: profile round-trip, relocation with relative copied PNGs, path/schema rejection, authenticated endpoints, read-only output, initial state, and WebSocket reconnection. There are **26 passing automated tests** across motion, locking, storage, and output.
 - Camera monitor tests: normalized skeleton coordinates, invalid landmark handling, stale/lost skeleton clearing, and rejection of webcam/diagnostic fields from OBS packets.
 - Electron smoke test: studio opens, both rig modes render, PNG imports copy into managed assets, profile changes persist, local overlay draws an avatar with transparent corner pixels, bundled MediaPipe detects a test portrait, and the synthetic webcam pipeline completes neutral calibration. Mocked microphone and camera permission denials show the expected recovery messages. No renderer JavaScript errors were recorded.
 - A Windows x64 NSIS installer was generated. The packaged executable also passed the same Electron smoke checks against its ASAR-bundled model, worker, artwork, and renderer. Installation into the user's regular application directory has not been performed by the development session.
@@ -17,6 +17,12 @@ The smoke test uses an isolated test profile directory, software rendering, synt
 All 21 automated tests, strict TypeScript checking, production builds, and the expanded Electron smoke suite passed. The updated packaged executable passed the same suite with zero renderer JavaScript errors. Synthetic camera checks cover real video element playback, feed visibility without stopping inference, independent skeleton/mirror/size controls, local diagnostics, face-loss clearing/recovery, and calibration. The OBS page contains no video element or camera monitor. A PNG import timing race discovered during visual review was fixed; the imported simple pose renders without an artwork alert.
 
 The v0.2.0 NSIS installer uses the previously packaged Windows Electron runtime with a freshly bundled application ASAR. The camera monitor is checked using a public MediaPipe portrait fixture rather than physical webcam footage. Display toggles start off each session (preview mirroring defaults on). Live hardware acceptance requirements below remain outstanding.
+
+## v0.2.1 centered layer scaling (2026-10-05)
+
+The Scale slider now preserves the geometric center of each PNG layer by compensating its saved top-left coordinates. Existing profile placement and normalized pivot settings remain compatible. The available scale range accounts for the existing coordinate bounds, rather than shifting the center or saving an invalid profile.
+
+All 26 automated tests and strict TypeScript/production builds passed. New regression tests cover non-square artwork, growing/shrinking, repeated scrubbing, custom pivots, unaffected sibling layers, large PNGs, coordinate limits, and profile serialization. The packaged v0.2.1 executable passed the focused scaling smoke test: the real slider preserves the center, the profile retains its scale and center across an application restart, studio/OBS pixels match at equal canvas dimensions, and output transparency is retained. No renderer JavaScript errors were recorded. The Windows installer was regenerated from the same checked application archive.
 
 ## Performance evidence and limits
 
