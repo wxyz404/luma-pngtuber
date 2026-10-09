@@ -5,7 +5,7 @@
 - TypeScript strict type checking and production renderer/main/preload/worker builds.
 - Motion and rig tests: direction and blink hysteresis, audio gating, simultaneous-expression priority, smoothing, calibration offsets, 250 ms loss hold and 300 ms neutral recovery, pose fallback, independent layered features.
 - Continuity-lock tests: maintain the selected face when another face is larger, require reacquisition after loss, and retain a continuously detected face during slow inference.
-- Storage/server tests: profile round-trip, relocation with relative copied PNGs, path/schema rejection, authenticated endpoints, read-only output, initial state, and WebSocket reconnection. There are **39 passing automated tests** across artwork, motion, locking, storage, and output.
+- Storage/server tests: profile round-trip, relocation with relative copied PNGs, path/schema rejection, authenticated endpoints, read-only output, initial state, and WebSocket reconnection. There are **45 passing automated tests** across artwork, head-pose conversion, motion, locking, storage, and output.
 - Camera monitor tests: normalized skeleton coordinates, invalid landmark handling, stale/lost skeleton clearing, and rejection of webcam/diagnostic fields from OBS packets.
 - Electron smoke test: studio opens, both rig modes render, PNG imports copy into managed assets, profile changes persist, local overlay draws an avatar with transparent corner pixels, bundled MediaPipe detects a test portrait, and the synthetic webcam pipeline completes neutral calibration. Mocked microphone and camera permission denials show the expected recovery messages. No renderer JavaScript errors were recorded.
 - A Windows x64 NSIS installer was generated. The packaged executable also passed the same Electron smoke checks against its ASAR-bundled model, worker, artwork, and renderer. Installation into the user's regular application directory has not been performed by the development session.
@@ -47,6 +47,18 @@ All 39 automated tests, strict TypeScript checking, and production builds passed
 The packaged executable passed the old-profile/OBS-token compatibility and facing-state smoke checks, with transparent output and zero renderer JavaScript errors. Facing checks cover native imports, combined smile/talk/blink poses, synthetic yaw in studio and output, the centered-only switch, studio-only previews, layered side/blink variants, and save/restart persistence. These use synthetic signals rather than physical webcam trials.
 
 The v0.3.2 NSIS installer was generated from the checked application archive. This environment rejected the legacy NSIS compiler and generated helper executable with Windows DLL relocation errors. Packaging used the official NSIS toolset bundle 2.0.1 (NSIS 3.12) and electron-builder's uninstaller extraction reader, extended to accept the newer compiler's ordinary `.idata`, `.reloc`, and `.ndata` PE sections. This changes only build-time extraction; executable bytes and installer behavior are not patched. Physical installation and normal production sandbox acceptance requirements below remain outstanding.
+
+## v0.3.3 side-facing tilt and avatar mirroring (2026-10-09)
+
+Corrected the camera transform conversion to read MediaPipe's column-major rotation consistently. Yaw selects the facing using the same screen coordinates as the projected head-up axis; pitch moves downward for a downward nod. The projected up axis retains visible up/down tilt while facing sideways, without reversing it at facing thresholds. Recalibrate neutral pose after upgrading so old offsets match the corrected coordinate conventions. The matrix format follows [MediaPipe's matrix serialization](https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/framework/formats/matrix_data.proto).
+
+The saved **Mirror avatar** switch reflects the entire shared renderer, independently of **Mirror movement** and webcam preview mirroring. It defaults off in old and new profiles. Canvas dragging and Shift-click pivot placement convert reflected screen coordinates back to artwork coordinates.
+
+All 45 automated tests, strict TypeScript checking, and production builds passed. New tests independently compose scaled camera rotations and cover left/right up/down nods with both motion-mirror settings, projected lean, missing/invalid matrices, old profile defaults, independent mirror serialization, and mirrored editing coordinates.
+
+The packaged executable passed the focused motion check in both rig modes. Synthetic camera input uses signals derived from composed camera matrices; colored nose/pivot markers verify rendered nod direction in the studio and OBS. Pixel checks verify that the avatar switch produces a horizontal reflection, studio/output pixels match, and transparency is retained. The actual UI drag and pivot interactions and mirror settings survive save/restart. Old-profile settings, geometry, assignments, and OBS token compatibility also pass. No renderer JavaScript errors were recorded.
+
+The v0.3.3 NSIS installer uses the same build-time toolset/extraction workaround as v0.3.2. Extracting its embedded application archive yields an exact SHA-256 match to the tested packaged runtime. Physical installation, live webcam verification of the corrected angles, normal production sandbox checks, and the hardware acceptance work below remain outstanding.
 
 ## Performance evidence and limits
 

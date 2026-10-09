@@ -1,6 +1,6 @@
 # Sprout — local PNGtuber studio
 
-Previously named Luma. Sprout v0.3.2 includes complete center, left, and right artwork banks for the bundled avatar in both rig modes.
+Previously named Luma. Sprout v0.3.3 fixes sideways head nods and adds an independent avatar mirror switch. Complete center, left, and right artwork banks are included for the bundled avatar in both rig modes.
 
 Sprout turns ordinary webcam movements into a PNG avatar on Windows. It includes a sample character, two rig modes, optional microphone gating, local profile storage, and transparent OBS output. No accounts or online processing are used.
 
@@ -54,6 +54,12 @@ Profiles using untouched sample artwork gain the missing sample slots when loade
 - Sprout's parts use a shared 1024 × 1024 transparent canvas. Imported layers initially fit within 850 pixels; adjust their scale and position to match your own art.
 - A single flat PNG supports position, rotation, and talking bounce. Additional artwork is needed to change the drawn eyes or mouth. Head turning cannot reconstruct a side view from front-facing artwork.
 - Motion demo buttons affect the studio preview only. The OBS source continues to follow live input.
+
+## Tilt and mirroring (v0.3.3)
+
+Head angles now use MediaPipe's column-major camera transform consistently, including the visible head tilt when looking up or down while facing sideways. After upgrading, **calibrate neutral pose again** so your saved offsets match the corrected coordinates.
+
+In **Motion → Motion response**, **Mirror movement** reverses horizontal tracking, facing selection, and tilt. **Mirror avatar** flips the complete rendered artwork horizontally, including the body, accessories, and movement; it applies to both the studio and OBS. These are independent settings saved per avatar. Avatar mirroring defaults off for new and existing profiles. Webcam preview mirroring remains a separate studio-only control. Layer dragging and Shift-click pivot placement work in the reflected artwork view.
 
 ## Storage and recovery
 

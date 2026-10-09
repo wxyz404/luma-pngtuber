@@ -8,7 +8,7 @@ export class AvatarRenderer {
   preload(profile:AvatarProfile){const assets=new Set([...Object.values(profile.poses),...profile.layers.flatMap(l=>[l.asset,...Object.values(l.variants)]).filter(Boolean) as string[]]);for(const a of assets)this.image(a);}
   private image(asset:string){if(!this.images.has(asset)&&!this.failed.has(asset)){const img=new Image();img.onload=()=>{};img.onerror=()=>{this.failed.add(asset);this.onError?.(asset);};img.src=this.url(asset);this.images.set(asset,img);}const img=this.images.get(asset);return img?.complete&&img.naturalWidth&&!this.failed.has(asset)?img:undefined;}
   draw(profile:AvatarProfile,s:AnimationState,selected?:string){
-    const c=this.canvas,ctx=c.getContext('2d')!;ctx.clearRect(0,0,c.width,c.height);ctx.save();const scale=Math.min(c.width,c.height)/1024;ctx.translate((c.width-1024*scale)/2,(c.height-1024*scale)/2);ctx.scale(scale,scale);
+    const c=this.canvas,ctx=c.getContext('2d')!;ctx.clearRect(0,0,c.width,c.height);ctx.save();const scale=Math.min(c.width,c.height)/1024;ctx.translate((c.width-1024*scale)/2,(c.height-1024*scale)/2);ctx.scale(scale,scale);if(profile.settings.mirrorAvatar){ctx.translate(1024,0);ctx.scale(-1,1);}
     const strength=profile.settings.strength;const mirror=profile.settings.mirror?-1:1;
     const dx=clamp(s.x*70+s.yaw*.65,-65,65)*strength*mirror,dy=clamp(s.y*50+s.pitch*.5,-45,45)*strength;
     const roll=clamp(s.roll,-18,18)*Math.PI/180*strength*mirror;

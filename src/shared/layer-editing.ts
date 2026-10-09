@@ -1,5 +1,10 @@
 import { Layer, LAYER_POSITION_MIN, LAYER_POSITION_MAX } from './types';
 
+/** Convert a studio canvas pointer to saved artwork coordinates, including a flip. */
+export function artworkPoint(x: number, y: number, width: number, height: number, mirrored: boolean) {
+  return { x: (mirrored ? 1 - x / width : x / width) * 1024, y: y / height * 1024 };
+}
+
 // x/y remain top-left coordinates in saved profiles. Editing scale compensates
 // those coordinates so existing artwork stays centered without a migration.
 export function layerScaleRange(layer: Layer) {
