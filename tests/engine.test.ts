@@ -13,7 +13,7 @@ describe('motion signals',()=>{
  it('smooths with elapsed time and subtracts neutral calibration',()=>{const e=new MotionEngine();const q=structuredClone(p);q.settings.smoothing=100;q.calibration.neutral.yaw=10;const out=e.step(f(100,{yaw:40}),q);expect(out.yaw).toBeGreaterThan(0);expect(out.yaw).toBeLessThan(30);});
 });
 describe('rig mappings',()=>{
- it('selects direction before center expression',()=>expect(choosePose(p,{...IDLE,direction:'left',expression:'smile'})).toBe('sample/left.png'));
+ it('selects direction before center expression',()=>{const q=structuredClone(p);delete q.poses['left.smile'];expect(choosePose(q,{...IDLE,direction:'left',expression:'smile'})).toBe('sample/left.png');});
  it('selects combined talk/blink and gracefully falls back',()=>{const q=structuredClone(p);q.poses['center.neutral.talk.blink']='sample/neutral.png';expect(choosePose(q,{...IDLE,talking:true,blinking:true})).toBe('sample/neutral.png');delete q.poses['center.neutral.talk.blink'];expect(choosePose(q,{...IDLE,talking:true,blinking:true})).toBe('sample/blink.png');});
  it('animates eyes and mouth independently',()=>{const s={...IDLE,talking:true,blinking:true};expect(layerAsset(p.layers.find(l=>l.role==='eyes')!,s)).toBe('sample/eyes-blink.png');expect(layerAsset(p.layers.find(l=>l.role==='mouth')!,s)).toBe('sample/mouth-talk.png');});
 });

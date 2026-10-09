@@ -19,10 +19,15 @@ const fs = require('node:fs/promises'), path = require('node:path'), assert = re
     assert.equal(await page.title(), 'Sprout · Avatar studio');
     assert.equal(await page.locator('.brand b').innerText(), 'sprout.');
     assert(!(await page.locator('body').innerText()).includes('Luma'));
-    assert.deepEqual(config.active, oldProfile);
+    const { poses, layers, ...savedFields } = oldProfile;
+    const { poses: currentPoses, layers: currentLayers, ...currentFields } = config.active;
+    assert.deepEqual(currentFields, savedFields);
+    assert.deepEqual(currentLayers.map(({ variants, ...geometry }) => geometry), layers.map(({ variants, ...geometry }) => geometry));
+    for (const [key, value] of Object.entries(poses)) assert.equal(currentPoses[key], value);
+    assert.equal(Object.keys(currentPoses).length, 36);
     assert.equal(new URL(config.outputUrl).searchParams.get('token'), prefs.token);
     const identity = await app.evaluate(({ app }) => ({ name: app.getName(), version: app.getVersion() }));
-    assert.deepEqual(identity, { name: 'sprout-pngtuber', version: '0.3.1' });
+    assert.deepEqual(identity, { name: 'sprout-pngtuber', version: require('../package.json').version });
     await page.waitForFunction(() => document.querySelector('.stage canvas').getContext('2d').getImageData(512, 500, 1, 1).data[3] > 0);
     await page.screenshot({ path: path.join(workspace, 'outputs', 'Sprout-preview.png') });
     await page.setViewportSize({ width: 1100, height: 800 });
@@ -36,7 +41,7 @@ const fs = require('node:fs/promises'), path = require('node:path'), assert = re
     assert.equal(await overlay.locator('video').count(), 0);
     await overlay.close();
     assert.deepEqual(errors, []);
-    const result = { passed: true, version: identity.version, checks: ['Sprout app identity, window title, and visible branding', 'Existing Luma profile loads without changes', 'Existing OBS access token is retained', 'Brand fits minimum window size', 'Sprout OBS title and transparent artwork output'], pageErrors: errors };
+    const result = { passed: true, version: identity.version, checks: ['Sprout app identity, window title, and visible branding', 'Existing Luma profile retains settings, geometry, and assignments while gaining stock artwork slots', 'Existing OBS access token is retained', 'Brand fits minimum window size', 'Sprout OBS title and transparent artwork output'], pageErrors: errors };
     await fs.writeFile(path.join(workspace, 'outputs', 'Sprout-branding-validation.json'), JSON.stringify(result, null, 2));
     console.log(JSON.stringify(result, null, 2));
   } finally { await app.close(); }

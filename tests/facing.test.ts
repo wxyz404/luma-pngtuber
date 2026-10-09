@@ -47,19 +47,21 @@ it('animates each layered feature from its selected side bank', () => {
 it('supports simultaneous smile/blink and smile/talk while prioritizing surprise', () => {
   const p = sampleProfile(), eyes = p.layers.find(l => l.role === 'eyes')!, mouth = p.layers.find(l => l.role === 'mouth')!;
   setLayerSlot(eyes, 'left', 'smile.blink', 'sample/left.png'); setLayerSlot(mouth, 'left', 'smile.talk', 'sample/talk.png'); setLayerSlot(mouth, 'left', 'surprise', 'sample/surprise.png');
+  setLayerSlot(mouth, 'left', 'surprise.talk');
   const state = { ...IDLE, direction: 'left' as const, expression: 'smile' as const, blinking: true, talking: true };
   expect(layerAsset(eyes, state)).toBe('sample/left.png'); expect(layerAsset(mouth, state)).toBe('sample/talk.png');
   expect(layerAsset(mouth, { ...state, expression: 'surprise' })).toBe('sample/surprise.png');
 });
 it('prefers a side resting feature over a mismatched center expression and falls back when the side is empty', () => {
   const eyes = sampleProfile().layers.find(l => l.role === 'eyes')!;
+  for (const key of Object.keys(eyes.variants)) if (key.startsWith('left.')) delete eyes.variants[key];
   setLayerSlot(eyes, 'left', 'neutral', 'sample/left.png');
   const state = { ...IDLE, direction: 'left' as const, blinking: true };
   expect(layerAsset(eyes, state)).toBe('sample/left.png');
   setLayerSlot(eyes, 'left', 'neutral'); expect(layerAsset(eyes, state)).toBe('sample/eyes-blink.png');
 });
 it('loads existing profiles and legacy head directions without changing alignment', () => {
-  const p = sampleProfile(), head = p.layers.find(l => l.role === 'head')!; head.variants.left = 'sample/left.png';
+  const p = sampleProfile(), head = p.layers.find(l => l.role === 'head')!; delete head.variants['left.neutral']; head.variants.left = 'sample/left.png';
   const legacy = JSON.parse(JSON.stringify(p)); delete legacy.settings.directionalStates;
   const loaded = profileSchema.parse(legacy);
   expect(loaded.settings.directionalStates).toBe(true); expect(loaded.layers).toEqual(p.layers);

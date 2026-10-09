@@ -5,7 +5,7 @@
 - TypeScript strict type checking and production renderer/main/preload/worker builds.
 - Motion and rig tests: direction and blink hysteresis, audio gating, simultaneous-expression priority, smoothing, calibration offsets, 250 ms loss hold and 300 ms neutral recovery, pose fallback, independent layered features.
 - Continuity-lock tests: maintain the selected face when another face is larger, require reacquisition after loss, and retain a continuously detected face during slow inference.
-- Storage/server tests: profile round-trip, relocation with relative copied PNGs, path/schema rejection, authenticated endpoints, read-only output, initial state, and WebSocket reconnection. There are **34 passing automated tests** across motion, locking, storage, and output.
+- Storage/server tests: profile round-trip, relocation with relative copied PNGs, path/schema rejection, authenticated endpoints, read-only output, initial state, and WebSocket reconnection. There are **39 passing automated tests** across artwork, motion, locking, storage, and output.
 - Camera monitor tests: normalized skeleton coordinates, invalid landmark handling, stale/lost skeleton clearing, and rejection of webcam/diagnostic fields from OBS packets.
 - Electron smoke test: studio opens, both rig modes render, PNG imports copy into managed assets, profile changes persist, local overlay draws an avatar with transparent corner pixels, bundled MediaPipe detects a test portrait, and the synthetic webcam pipeline completes neutral calibration. Mocked microphone and camera permission denials show the expected recovery messages. No renderer JavaScript errors were recorded.
 - A Windows x64 NSIS installer was generated. The packaged executable also passed the same Electron smoke checks against its ASAR-bundled model, worker, artwork, and renderer. Installation into the user's regular application directory has not been performed by the development session.
@@ -37,6 +37,16 @@ The v0.3.0 NSIS installer uses the previously packaged Windows Electron runtime 
 The desktop UI, window/output titles, support messages, package name, executable filename, installer name, and repository use Sprout. The original application ID (`studio.luma.pngtuber`) and production data path (`%APPDATA%\luma-pngtuber`) are retained for upgrade compatibility. Earlier releases were distributed under the Luma name.
 
 All 34 automated tests, strict TypeScript checking, and production builds passed. The packaged Sprout executable passed a branding/profile compatibility check using isolated data created by the earlier Luma executable: the full active profile and persistent OBS token were retained, the app and output titles use Sprout, and transparent avatar output remains intact. No renderer JavaScript errors were recorded. The Sprout v0.3.1 NSIS installer was regenerated from that checked application archive. Physical installer upgrade testing remains outstanding.
+
+## v0.3.2 complete sample facing artwork (2026-10-09)
+
+The sample now includes angled left/right head and facial components, with an anchored body. Each facing supports neutral, smile, and surprise expressions with talking and blinking combinations: 36 whole-image poses and 40 layered component PNGs, all on aligned transparent 1024 × 1024 canvases. The source drawings and a generated contact sheet are checked in. Existing profiles with unchanged stock artwork gain missing stock assignments on load; customized or reassigned artwork is preserved, along with positioning, settings, and calibration.
+
+All 39 automated tests, strict TypeScript checking, and production builds passed. Artwork checks decode all 76 assigned PNGs, verify dimensions, visible content, alpha and transparent corners, and verify that all 36 whole-image poses are distinct. Mapping tests cover every facing/expression/talk/blink combination in both rig modes. Storage tests cover stock-profile backfilling, repeated loads, persistence, and preservation of custom artwork and existing settings.
+
+The packaged executable passed the old-profile/OBS-token compatibility and facing-state smoke checks, with transparent output and zero renderer JavaScript errors. Facing checks cover native imports, combined smile/talk/blink poses, synthetic yaw in studio and output, the centered-only switch, studio-only previews, layered side/blink variants, and save/restart persistence. These use synthetic signals rather than physical webcam trials.
+
+The v0.3.2 NSIS installer was generated from the checked application archive. This environment rejected the legacy NSIS compiler and generated helper executable with Windows DLL relocation errors. Packaging used the official NSIS toolset bundle 2.0.1 (NSIS 3.12) and electron-builder's uninstaller extraction reader, extended to accept the newer compiler's ordinary `.idata`, `.reloc`, and `.ndata` PE sections. This changes only build-time extraction; executable bytes and installer behavior are not patched. Physical installation and normal production sandbox acceptance requirements below remain outstanding.
 
 ## Performance evidence and limits
 

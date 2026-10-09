@@ -1,6 +1,6 @@
 # Sprout — local PNGtuber studio
 
-Previously named Luma. Sprout v0.3.1 updates the app branding, installer name, and repository to [sprout-pngtuber](https://github.com/wxyz404/sprout-pngtuber).
+Previously named Luma. Sprout v0.3.2 includes complete center, left, and right artwork banks for the bundled avatar in both rig modes.
 
 Sprout turns ordinary webcam movements into a PNG avatar on Windows. It includes a sample character, two rig modes, optional microphone gating, local profile storage, and transparent OBS output. No accounts or online processing are used.
 
@@ -37,7 +37,15 @@ In **Artwork & rig → Facing states**, **Directional sprite states** lets head 
 
 Select a facing tab to import that state's artwork. **PNG poses** has a separate bank of resting, smile, surprised, talking, blinking, and combined talking/blinking poses for each facing. **Layered rig** has separate resting artwork per layer and separate eye, mouth, and brow variants per facing, including smile/blink and smile/talk combinations. All states share a layer's position, scale, and pivot; export matching transparent canvases.
 
-Missing side expression artwork falls back to that side's resting artwork, then available centered artwork. **Preview facing artwork** lets you check a facing and its expression without a webcam, including while directional switching is disabled. This preview stays inside the studio; OBS follows live input and the saved directional-state setting. The sample includes basic left/right PNG poses; supply additional art for side-specific facial animation.
+Missing side expression artwork falls back to that side's resting artwork, then available centered artwork. **Preview facing artwork** lets you check a facing and its expression without a webcam, including while directional switching is disabled. This preview stays inside the studio; OBS follows live input and the saved directional-state setting.
+
+### Complete Sprout sample (v0.3.2)
+
+The bundled avatar has angled left/right views with matching eyes, eyebrows, and mouths. Each facing includes neutral, smiling, and surprised poses, with talking, blinking, and combined talking/blinking variants: **36 complete poses** plus **40 layered component PNGs**. All artwork uses aligned 1024 × 1024 transparent canvases. The body stays anchored while the head and facial features change perspective.
+
+![Sprout facing artwork](docs/facing-artwork.png)
+
+Profiles using untouched sample artwork gain the missing sample slots when loaded; save to persist them. Their existing positioning, settings, calibration, and assignments are preserved. Profiles with customized artwork are left alone. Create a new avatar to start with the complete sample without replacing an existing custom rig. Keep **Directional sprite states** enabled to use the side views during tracking.
 
 - PNG files must be readable, at most 20 MB, and at most 4096 × 4096 pixels.
 - **PNG poses:** center/neutral/resting is required. Direction, expression, and talking/blinking variants are optional. Direction has priority, followed by surprise, smile, and neutral. Missing variants fall back to available artwork.
@@ -69,6 +77,8 @@ pnpm run build
 pnpm run start
 pnpm run package
 ```
+
+`node scripts/sample-sheet.mjs` generates a facing-artwork contact sheet from the same drawing source as the bundled PNGs.
 
 `scripts/smoke.cjs` uses Playwright's Electron API. Install Playwright as a development tool or set `SPROUT_PLAYWRIGHT` to its module location. Provide Google's MediaPipe `portrait.jpg` test fixture at `../../work/portrait.jpg` before running it. The script uses synthetic video, separate test profiles, software rendering, and a test-only `--no-sandbox` launch flag for constrained execution environments. It never requests the real webcam. Those flags are not added to the packaged application.
 
