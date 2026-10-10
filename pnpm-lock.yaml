@@ -49,7 +49,7 @@ importers:
         specifier: ^40.0.0
         version: 40.10.6(supports-color@7.2.0)
       electron-builder:
-        specifier: ^26.0.12
+        specifier: 26.15.3
         version: 26.15.3(electron-builder-squirrel-windows@26.15.3)(supports-color@7.2.0)
       esbuild:
         specifier: ^0.25.0

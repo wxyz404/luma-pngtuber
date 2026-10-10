@@ -1,6 +1,6 @@
 # Sprout — local PNGtuber studio
 
-Previously named Luma. Sprout v0.3.3 fixes sideways head nods and adds an independent avatar mirror switch. Complete center, left, and right artwork banks are included for the bundled avatar in both rig modes.
+Previously named Luma. Sprout v0.3.4 repairs installer upgrades by replacing application files in place. It includes the v0.3.3 sideways-nod correction and independent avatar mirror switch, plus complete center, left, and right artwork banks in both rig modes.
 
 Sprout turns ordinary webcam movements into a PNG avatar on Windows. It includes a sample character, two rig modes, optional microphone gating, local profile storage, and transparent OBS output. No accounts or online processing are used.
 
@@ -9,6 +9,10 @@ Sprout turns ordinary webcam movements into a PNG avatar on Windows. It includes
 ## Install and use
 
 Build the Windows installer with `pnpm run package`, or download a published installer from the repository Releases page when available. Packaging writes the installer to `../installers/`. The installer lets you choose a per-user installation location; this initial build is unsigned.
+
+**Updating an existing copy:** save your avatar and close Sprout first. Keep the existing installation folder and installation scope selected. Version 0.3.4 replaces program files without running the previous version's uninstaller, avoiding its failing rename-to-temporary-folder step. The installer checks each payload file for write access and identifies locked or inaccessible files before extraction. It registers the new uninstaller and shortcuts normally; profiles and artwork in `%APPDATA%\luma-pngtuber` are retained. Moving an existing installation to another folder requires uninstalling it first. Do not delete your profile directory to fix an installer problem. An interrupted extraction can require rerunning the installer; this is not a transactional updater.
+
+**Portable alternative:** extract the entire Windows portable ZIP into a new writable folder and run `Sprout.exe` there. Keep its `resources`, `locales`, and DLL files together. It uses the same saved avatar directory as the installed app. Close the installed copy before launching the portable copy. It does not update the installed copy or replace its shortcuts; launch the extracted executable directly.
 
 1. Open Sprout. Sprout, the bundled sample avatar, is ready to use.
 2. Select a webcam and click **Start camera**. Camera preview is optional and stays inside the studio.
@@ -83,6 +87,8 @@ pnpm run build
 pnpm run start
 pnpm run package
 ```
+
+Windows packaging uses the pinned electron-builder version through `scripts/package-windows.cjs`. This adapts only its old-version removal function in a temporary template, retains the standard installer/uninstaller, and generates file checks from the actual packaged runtime. Do not bypass this script with a direct electron-builder invocation. `SPROUT_PREPACKAGED` optionally supplies an already packaged runtime. Dependency files and Windows uninstall registry entries are not patched or deleted to bypass errors.
 
 `node scripts/sample-sheet.mjs` generates a facing-artwork contact sheet from the same drawing source as the bundled PNGs.
 
